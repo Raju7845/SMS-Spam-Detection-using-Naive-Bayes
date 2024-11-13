@@ -1,0 +1,37 @@
+
+import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+# Load data
+data = pd.read_csv(r"C:\Users\theri\Downloads\sms+spam+collection\SMSSpamCollection", 
+                   sep='\t', 
+                   header=None, 
+                   names=['Label', 'Message'])
+
+# Ensure labels are mapped correctly
+data['Label'] = data['Label'].map({'ham': 0, 'spam': 1})
+
+# Split data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(data['Message'], data['Label'], test_size=0.2, random_state=1)
+
+# Convert text data to numeric features
+vectorizer = CountVectorizer()
+X_train_vec = vectorizer.fit_transform(X_train)
+X_test_vec = vectorizer.transform(X_test)
+
+# Train Naive Bayes model
+model = MultinomialNB()
+model.fit(X_train_vec, y_train)
+
+# Make predictions and evaluate
+y_pred = model.predict(X_test_vec)
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+
+# Test a new message for prediction
+new_message = ["Start your Data Analytics career by joining Crio’s ‘Fellowship Program in NextGen Data Analytics with AI’ to get benefits worth up to ₹1,40,000 through our #UnlockYourCareerPotential scholarship! "]
+new_message_vec = vectorizer.transform(new_message)
+print("Prediction for new message:", "Spam" if model.predict(new_message_vec)[0] == 1 else "Not Spam")
